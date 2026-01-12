@@ -1,77 +1,26 @@
-use clap::{Parser, Subcommand};
-use lopdf::Document;
-use lopdf::Object;
-use std::path::PathBuf;
+use clap::Parser;
+mod cli;
+mod commands;
 
-#[derive(Parser)]
-#[command(name = "Rusty PDF")]
-#[command(version = "1.0")]
-#[command(about = "A blazingly fast PDF tool", long_about = None)]
-struct Cli {
-    #[command(subcommand)]
-    command: Commands,
-}
-
-#[derive(Subcommand)]
-enum Commands {
-    Merge {
-        #[arg(short, long)]
-        output: PathBuf,
-
-        #[arg(required = true)]
-        files: Vec<PathBuf>,
-    },
-}
+use cli::{Cli, Commands};
 
 fn main() {
-    let cli = Cli::parse();
+    let args = Cli::parse();
 
-    match &cli.command {
-        Commands::Merge { output, files } => {
-            println!("Starting merge operation for {} files...", files.len());
+    let result = match &args.command {
+        Commands::Merge { output, files } => commands::merge::run(files, output),
+        Commands::ExtractImages { input, dir } => commands::extract::run(input, dir),
+        Commands::Rotate {
+            input,
+            output,
+            angle,
+        } => commands::rotate::run(input, output, *angle),
+    };
 
-            match merge_pdfs(files, output) {
-                Ok(_) => println!("Success! Saved to {:?}", output),
-                Err(e) => println!("Error during merge: {}", e),
-            }
-        }
+    if let Err(e) = result {
+        eprintln!("Application Error: {}", e);
+        std::process::exit(1);
+    } else {
+        println!("Operation completed successfully.");
     }
-}
-
-fn merge_pdfs(files: &[PathBuf], output: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
-    let mut master_doc = Document::load(&files[0])?;
-    let mut max_id = master_doc.max_id;
-    let catalog = master_doc.catalog()?;
-    let pages_id = catalog.get(b"Pages")?.as_reference()?;
-
-    for file_path in files.iter().skip(1) {
-        let mut doc = Document::load(file_path)?;
-
-        doc.renumber_objects_with(max_id + 1);
-        max_id = doc.max_id;
-
-        let page_ids: Vec<lopdf::ObjectId> = doc.get_pages().values().cloned().collect();
-
-        for (id, object) in doc.objects {
-            master_doc.objects.insert(id, object);
-        }
-
-        if let Ok(pages_object) = master_doc.get_object_mut(pages_id) {
-            if let Object::Dictionary(dict) = pages_object {
-                let kids = dict.get_mut(b"Kids")?.as_array_mut()?;
-                for pid in &page_ids {
-                    kids.push(Object::Reference(*pid));
-                }
-
-                let count = dict.get_mut(b"Count")?;
-                if let Object::Integer(c) = count {
-                    *c += page_ids.len() as i64;
-                }
-            }
-        }
-    }
-
-    master_doc.compress();
-    master_doc.save(output)?;
-    Ok(())
 }
