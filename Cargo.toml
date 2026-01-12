@@ -1,0 +1,8 @@
+[package]
+name = "rusty_pdf"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+lopdf = "0.35"
+clap = {version = "4.0", features = ["derive"]}
