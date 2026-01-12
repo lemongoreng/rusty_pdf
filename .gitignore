@@ -1,4 +1,8 @@
 /target
+
+# Ignore test PDFs
 test1.pdf
 test2.pdf
-testImage.pdfi
+testImage.pdf
+result.pdf
+rotated.pdf
