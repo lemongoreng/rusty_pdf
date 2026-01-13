@@ -12,7 +12,41 @@ A blazingly fast, modular command-line interface (CLI) for manipulating PDF file
 
 ## Installation
 
+### Method 1: Download Binaries (Recommended)
 Go to the [Releases Page](../../releases) and download the executable for your operating system.
+
+**Linux Users:**
+1. Download `rusty_pdf-linux`.
+2. Open your terminal in the downloads folder.
+3. Make it executable and run it:
+```bash
+chmod +x rusty_pdf-linux
+./rusty_pdf-linux --help
+```
+4. **(Optional)** If you want to run rusty_pdf from anywhere without typing ./ or finding the folder every time, move it to your user's binary folder.
+```bash
+# Rename it to something short and move it
+sudo mv rusty_pdf-linux /usr/local/bin/rusty_pdf
+
+# Now you can just type this from any folder:
+rusty_pdf --help
+```
+
+**Windows Users:**
+1. Download `rusty_pdf.exe`.
+2. Open COmmand Prompt or Powershell in the downloads folder.
+3. Run:
+```Powershell
+.\rusty_pdf.exe --help
+```
+
+### Method 2: Build from Source
+(If you have Rust installed)
+```bash
+git clone [https://github.com/lemongoreng/rusty_pdf](https://github.com/lemongoreng/rusty_pdf)
+cd rusty_pdf
+cargo install --path .
+```
 
 ## Usage
 1. Merge PDFs
